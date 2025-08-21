@@ -10,10 +10,11 @@ A Node.js authentication API that provides user signup, OTP verification, and PI
 - PostgreSQL database with proper schema
 - Docker support for easy development
 - Comprehensive test suite
+- **GitHub Actions CI/CD pipeline** with automated testing, security scanning, and deployment
 
 ## Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - Docker and Docker Compose (for PostgreSQL)
 - npm or yarn
 
@@ -65,6 +66,35 @@ npm start
 
 The API will be available at `http://localhost:3000`
 
+## GitHub Actions CI/CD
+
+This project includes comprehensive GitHub Actions workflows:
+
+### 🔄 **CI Pipeline** (`.github/workflows/ci.yml`)
+- **Multi-version testing** on Node.js 18.x and 20.x
+- **PostgreSQL service** for integration testing
+- **Security scanning** with npm audit and Snyk
+- **Docker image building** and testing
+- **Code coverage** reporting with Codecov
+
+### 🚀 **CD Pipeline** (`.github/workflows/cd.yml`)
+- **Automated Docker image building** and pushing to GitHub Container Registry
+- **Staging deployment** on master branch
+- **Production deployment** with manual approval
+- **Multi-tag support** (latest, SHA-based, branch-based)
+
+### 🔒 **Security Scanning** (`.github/workflows/security.yml`)
+- **Weekly security audits** with npm audit
+- **Snyk vulnerability scanning**
+- **CodeQL analysis** for code security
+- **Docker image scanning** with Trivy
+- **SARIF report** generation for GitHub Security tab
+
+### 🗄️ **Database Migrations** (`.github/workflows/migrations.yml`)
+- **Automated migration testing** when schema changes
+- **Database verification** with connectivity checks
+- **Migration rollback testing**
+
 ## API Endpoints
 
 ### Authentication
@@ -73,6 +103,10 @@ The API will be available at `http://localhost:3000`
 - `POST /auth/otp/request` - Request a new OTP
 - `POST /auth/otp/verify` - Verify OTP
 - `POST /auth/login` - Login with PIN
+
+### Health Check
+
+- `GET /health` - Application health check with database connectivity status
 
 ## Database Schema
 
@@ -99,7 +133,7 @@ The API will be available at `http://localhost:3000`
 ### Running Tests with Coverage
 
 ```bash
-npm run test:coverage
+npm test
 ```
 
 ### Database Reset
@@ -108,6 +142,7 @@ To reset the database (drops and recreates all tables):
 
 ```bash
 npm run db:reset
+npm run db:init
 ```
 
 ### Manual Database Setup
@@ -134,6 +169,28 @@ If you prefer to use a local PostgreSQL installation:
 | `OTP_LENGTH` | OTP code length | `6` |
 | `OTP_EXPIRY_MINUTES` | OTP expiry time | `10` |
 
+## GitHub Actions Setup
+
+### Required Secrets
+
+Add these secrets to your GitHub repository:
+
+#### For Security Scanning
+- `SNYK_TOKEN` - Snyk API token for vulnerability scanning
+
+#### For Deployment (CD Pipeline)
+- `AZUREAPPSERVICE_PUBLISHPROFILE_STAGING` - Azure App Service publish profile for staging
+- `AZUREAPPSERVICE_PUBLISHPROFILE_PRODUCTION` - Azure App Service publish profile for production
+- Or configure for your specific cloud provider
+
+### Workflow Triggers
+
+- **Push to master/develop**: Triggers CI pipeline
+- **Pull requests**: Triggers CI pipeline
+- **Database migrations**: Triggers migration testing
+- **Weekly schedule**: Security scanning runs every Monday
+- **Manual trigger**: All workflows support manual execution
+
 ## Docker Commands
 
 ```bash
@@ -149,6 +206,10 @@ docker-compose logs postgres
 # Reset PostgreSQL data
 docker-compose down -v
 docker-compose up -d
+
+# Build and test Docker image locally
+docker build -t auth-api:latest .
+docker run -p 3000:3000 --env-file .env auth-api:latest
 ```
 
 ## Project Structure
@@ -176,12 +237,36 @@ docker-compose up -d
 │   │   └── auth.service.js
 │   ├── utils/
 │   │   └── otp.js
-│   └── app.js
+│   ├── app.js
+│   └── server.js
 ├── tests/
 │   ├── auth.test.js
 │   ├── setup.js
+│   ├── repositories/
+│   │   └── user.repository.test.js
 │   └── services/
 │       └── auth.service.test.js
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── cd.yml
+│       ├── security.yml
+│       └── migrations.yml
 ├── docker-compose.yml
+├── Dockerfile
 ├── jest.config.js
 └── package.json
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run the test suite: `npm test`
+5. Push to your branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request - the CI pipeline will automatically run tests and security checks
+
+## License
+
+ISC
