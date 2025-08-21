@@ -1,0 +1,28 @@
+{
+  "name": "signup_otp_fake_repository_api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --runInBand --coverage",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --runInBand --coverage --ci",
+    "lint": "echo 'No linter configured yet'",
+    "lint:fix": "echo 'No linter configured yet'",
+    "build": "echo 'No build step required for Node.js app'",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:fix": "npm audit fix"
+  },
+  "author": "Teguh Arifianto",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "jest": "^30.0.5",
+    "supertest": "^7.1.4"
+  }
+}
