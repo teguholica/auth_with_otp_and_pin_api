@@ -12,7 +12,6 @@ class AuthService {
       email: email.toLowerCase(),
       name: name || null,
       passwordHash: hash,
-      createdAt: now,
       verifiedAt: null,
       status: "PENDING_VERIFICATION",
     });

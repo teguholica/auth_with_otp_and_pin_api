@@ -1,17 +1,16 @@
 const userRepo = require("../../src/repositories/user.repository");
 
 describe("UserRepository", () => {
+    const email = "test@example.com";
+
     it("should create and find user", async () => {
-        const email = "repo@example.com";
-        await userRepo.create({ email, name: "Repo", passwordHash: "x" });
+        await userRepo.create({ email, name: "Test", passwordHash: "x", status: "PENDING_VERIFICATION" });
         const user = await userRepo.findByEmail(email);
         expect(user.email).toBe(email);
     });
 
     it("should throw on duplicate", async () => {
-        const email = "dup@example.com";
-        await userRepo.create({ email, name: "Dup", passwordHash: "y" });
-        await expect(userRepo.create({ email, name: "Dup2", passwordHash: "z" }))
+        await expect(userRepo.create({ email, name: "Test", passwordHash: "x", status: "PENDING_VERIFICATION" }))
             .rejects.toThrow("USER_ALREADY_EXISTS");
     });
 

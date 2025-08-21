@@ -12,14 +12,18 @@
     "lint:fix": "echo 'No linter configured yet'",
     "build": "echo 'No build step required for Node.js app'",
     "security:audit": "npm audit --audit-level=moderate",
-    "security:fix": "npm audit fix"
+    "security:fix": "npm audit fix",
+    "db:init": "node src/database/init.js",
+    "db:reset": "node src/database/reset.js"
   },
   "author": "Teguh Arifianto",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "express": "^5.1.0"
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "jest": "^30.0.5",

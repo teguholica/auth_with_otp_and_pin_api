@@ -1,14 +1,21 @@
 const authService = require("../../src/services/auth.service");
 const userRepo = require("../../src/repositories/user.repository");
 const otpRepo = require("../../src/repositories/otp.repository");
+const pool = require("../../src/config/database");
 
 describe("AuthService", () => {
     const email = "service@example.com";
     const password = "abc123";
 
-    beforeEach(() => {
-        userRepo.usersByEmail.clear();
-        otpRepo.otpByEmail.clear();
+    // Clean up between tests
+    afterEach(async () => {
+        // Clear test data but keep structure
+        try {
+            await pool.query('DELETE FROM otps');
+            await pool.query('DELETE FROM users');
+        } catch (error) {
+            console.error('Test cleanup failed:', error);
+        }
     });
 
     it("should signup user and return otp", async () => {
@@ -33,25 +40,42 @@ describe("AuthService", () => {
 
     it("should throw OTP_EXPIRED", async () => {
         const { email } = await authService.signup({ email: "exp@example.com", password: "123456" });
-        // directly override OTP to be expired
-        otpRepo.otpByEmail.set(email, { code: "123456", expiresAt: Date.now() - 1000, attempts: 0 });
+        
+        // Manually update the OTP to be expired using repository
+        const expiredOtp = {
+            code: "123456",
+            expiresAt: Date.now() - 1000,
+            attempts: 0
+        };
+        await otpRepo.upsert(email, expiredOtp);
+        
         await expect(authService.verifyOtp(email, "123456")).rejects.toThrow("OTP_EXPIRED");
     });
 
     it("should throw OTP_TOO_MANY_ATTEMPTS", async () => {
         const { email, otp } = await authService.signup({ email: "lock@example.com", password: "123456" });
-        otpRepo.otpByEmail.set(email, { code: otp, expiresAt: Date.now() + 60000, attempts: 5 });
+        
+        // Manually update the OTP to have max attempts using repository
+        const lockedOtp = {
+            code: otp,
+            expiresAt: Date.now() + 60000,
+            attempts: 5
+        };
+        await otpRepo.upsert(email, lockedOtp);
+        
         await expect(authService.verifyOtp(email, otp)).rejects.toThrow("OTP_TOO_MANY_ATTEMPTS");
     });
 
     it("should throw OTP_NOT_FOUND if no OTP requested", async () => {
         const { email } = await authService.signup({ email: "nootp@example.com", password: "123456" });
-        // directly delete OTP to make it null
-        otpRepo.delete(email);
+        
+        // Manually delete the OTP using repository
+        await otpRepo.delete(email);
+        
         await expect(authService.verifyOtp(email, "123456")).rejects.toThrow("OTP_NOT_FOUND");
     });
 
-    it("should signup without name parameter (cover line 32)", async () => {
+    it("should signup without name parameter", async () => {
         const result = await authService.signup({ email: "noname@example.com", password: "abc123" });
         expect(result.email).toBe("noname@example.com");
         expect(result.status).toBe("PENDING_VERIFICATION");
@@ -61,7 +85,7 @@ describe("AuthService", () => {
         expect(user.name).toBeNull();
     });
 
-    it("should not return otp in production environment (cover line 53)", async () => {
+    it("should not return otp in production environment", async () => {
         // Set NODE_ENV to production
         const originalEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = "production";
@@ -76,7 +100,7 @@ describe("AuthService", () => {
         }
     });
 
-    it("should return otp in non-production environment (cover branch true)", async () => {
+    it("should return otp in non-production environment", async () => {
         const originalEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = "development";
 
@@ -117,5 +141,19 @@ describe("AuthService", () => {
         }
     });
 
+    it("should throw USER_NOT_FOUND in requestOtp for non-existent user", async () => {
+        await expect(authService.requestOtp("nonexistent@example.com"))
+            .rejects.toThrow("USER_NOT_FOUND");
+    });
 
+    it("should throw USER_NOT_FOUND in verifyOtp for non-existent user", async () => {
+        await expect(authService.verifyOtp("nonexistent@example.com", "123456"))
+            .rejects.toThrow("USER_NOT_FOUND");
+    });
+
+    it("should handle duplicate email signup", async () => {
+        await authService.signup({ email, password });
+        await expect(authService.signup({ email, password }))
+            .rejects.toThrow("USER_ALREADY_EXISTS");
+    });
 });

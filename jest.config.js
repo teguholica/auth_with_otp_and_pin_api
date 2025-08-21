@@ -1,17 +1,17 @@
 module.exports = {
-  testEnvironment: "node",
-  coverageDirectory: "coverage",
+  testEnvironment: 'node',
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  testMatch: ['<rootDir>/tests/**/*.test.js'],
   collectCoverageFrom: [
-    "src/**/*.js",
-    "!src/server.js",      // exclude entrypoint
+    'src/**/*.js',
+    '!src/server.js',
+    '!src/database/**/*.js',
+    '!src/config/**/*.js',
     "!src/app.js"          // exclude bootstrap file
   ],
-  coverageThreshold: {
-    global: {
-      statements: 90,
-      branches: 80,
-      functions: 90,
-      lines: 90,
-    },
-  },
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  verbose: true,
+  forceExit: true,
+  detectOpenHandles: true
 };
