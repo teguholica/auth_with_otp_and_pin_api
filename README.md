@@ -58,6 +58,26 @@ The database will be automatically initialized when you run the tests or start t
 
 ### 5. Run Tests
 
+You can run tests using either of these Docker-based scripts:
+
+**Option 1: Using Docker with sudo (recommended)**
+```bash
+./scripts/run-tests-with-docker.sh
+```
+
+**Option 2: Using Docker without sudo**
+```bash
+./scripts/run-tests-with-docker-no-sudo.sh
+```
+
+These scripts will:
+- Start a PostgreSQL container specifically for testing
+- Wait for the database to be ready
+- Initialize the test database
+- Run all tests
+- Clean up the container automatically
+
+**Alternative: Manual testing (requires local PostgreSQL)**
 ```bash
 npm test
 ```
