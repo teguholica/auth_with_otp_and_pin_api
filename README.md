@@ -1,5 +1,9 @@
 # Authentication API with OTP and PIN
 
+![CI](https://github.com/teguholica/auth_with_otp_and_pin_api/workflows/CI%20Pipeline/badge.svg)
+[![codecov](https://codecov.io/gh/teguholica/auth_with_otp_and_pin_api/branch/master/graph/badge.svg)](https://codecov.io/gh/teguholica/auth_with_otp_and_pin_api)
+![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)
+
 A Node.js authentication API that provides user signup, OTP verification, and PIN-based authentication using PostgreSQL.
 
 ## Features

@@ -5,7 +5,7 @@ This repository contains a comprehensive CI/CD pipeline using GitHub Actions for
 ## Workflows Overview
 
 ### 1. CI Pipeline (`.github/workflows/ci.yml`)
-**Triggers**: Push/PR to `main` and `develop` branches
+**Triggers**: Push/PR to `master` branch
 
 **Jobs**:
 - **test**: Runs tests on Node.js 18.x and 20.x
@@ -21,17 +21,16 @@ This repository contains a comprehensive CI/CD pipeline using GitHub Actions for
   - Uploads artifacts for deployment
 
 ### 2. CD Pipeline (`.github/workflows/cd.yml`)
-**Triggers**: Push to `main` branch or manual dispatch
+**Triggers**: Push to `master` branch or manual dispatch
 
 **Jobs**:
 - **deploy-staging**: Deploys to staging environment
 - **deploy-production**: Deploys to production (after staging success)
-- **notify**: Sends deployment notifications
 
 ### 3. Security Scan (`.github/workflows/security.yml`)
 **Triggers**: 
 - Weekly schedule (Mondays 2 AM)
-- Push/PR to `main` and `develop`
+- Push/PR to `master` branch
 - Manual dispatch
 
 **Jobs**:
@@ -71,6 +70,10 @@ npm run test:ci      # Run tests in CI mode
 npm run security:audit    # Check for vulnerabilities
 npm run security:fix      # Fix vulnerabilities automatically
 
+# Database
+npm run db:init      # Initialize database
+npm run db:reset     # Reset database
+
 # Quality
 npm run lint         # Run linter (placeholder)
 npm run lint:fix     # Fix linting issues (placeholder)
@@ -101,6 +104,23 @@ The pipeline uploads coverage reports to Codecov. To view reports:
 2. Add your repository
 3. Add `CODECOV_TOKEN` to your GitHub secrets (optional for public repos)
 
+## Database Configuration
+
+### PostgreSQL Setup
+The CI pipeline uses PostgreSQL service container for testing. Configure these environment variables:
+
+- **DB_HOST**: localhost (for CI)
+- **DB_PORT**: 5432
+- **DB_NAME**: auth_api_test
+- **DB_USER**: postgres
+- **DB_PASSWORD**: postgres
+
+### Local Development
+For local development, use the provided Docker setup:
+```bash
+docker-compose up -d
+```
+
 ## Monitoring
 
 ### GitHub Actions Tab
@@ -119,6 +139,7 @@ Monitor all workflows at: `https://github.com/[username]/[repo]/actions`
    - Check Node.js version compatibility
    - Ensure all dependencies are properly installed
    - Verify environment variables
+   - Check PostgreSQL service container logs
 
 2. **Security scan failures**
    - Review npm audit output
@@ -129,6 +150,11 @@ Monitor all workflows at: `https://github.com/[username]/[repo]/actions`
    - Verify deployment secrets are set
    - Check environment configuration
    - Review deployment logs
+
+4. **Database connection issues**
+   - Ensure PostgreSQL is running
+   - Check database credentials
+   - Verify database exists
 
 ## Best Practices
 
@@ -146,3 +172,8 @@ Monitor all workflows at: `https://github.com/[username]/[repo]/actions`
    - Cache dependencies in workflows
    - Use matrix builds for compatibility
    - Optimize test execution time
+
+4. **Database**
+   - Use migrations for schema changes
+   - Test database operations in CI
+   - Keep test database separate from development
