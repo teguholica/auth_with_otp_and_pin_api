@@ -48,8 +48,8 @@ class OtpRepository {
     return {
       email: dbRow.email,
       code: dbRow.code,
-      expiresAt: dbRow.expires_at,
-      attempts: dbRow.attempts
+      expiresAt: parseInt(dbRow.expires_at, 10), // Convert string to number
+      attempts: parseInt(dbRow.attempts, 10) // Convert string to number
     };
   }
 }

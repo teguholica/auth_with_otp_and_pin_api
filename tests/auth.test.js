@@ -5,8 +5,6 @@ describe("Auth API", () => {
     const email = "test@example.com";
     const password = "secret123";
 
-    let otpCode;
-
     it("should signup a new user and return OTP (dev mode)", async () => {
         const res = await request(app)
             .post("/auth/signup")
@@ -16,10 +14,13 @@ describe("Auth API", () => {
         expect(res.body.email).toBe(email);
         expect(res.body.status).toBe("PENDING_VERIFICATION");
         expect(res.body.otp).toHaveLength(6); // OTP is returned
-        otpCode = res.body.otp;
     });
 
     it("should reject duplicate signup", async () => {
+        await request(app)
+            .post("/auth/signup")
+            .send({ email, password, name: "Test User" });
+
         const res = await request(app)
             .post("/auth/signup")
             .send({ email, password });
@@ -29,6 +30,10 @@ describe("Auth API", () => {
     });
 
     it("should request new OTP", async () => {
+        await request(app)
+            .post("/auth/signup")
+            .send({ email, password, name: "Test User" });
+
         const res = await request(app)
             .post("/auth/otp/request")
             .send({ email });
@@ -36,10 +41,15 @@ describe("Auth API", () => {
         expect(res.status).toBe(200);
         expect(res.body.email).toBe(email);
         expect(res.body.otp).toHaveLength(6);
-        otpCode = res.body.otp;
     });
 
     it("should verify OTP successfully", async () => {
+        const signup = await request(app)
+            .post("/auth/signup")
+            .send({ email, password, name: "Test User" });
+
+        const otpCode = signup.body.otp;
+
         const res = await request(app)
             .post("/auth/otp/verify")
             .send({ email, code: otpCode });

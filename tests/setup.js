@@ -14,16 +14,16 @@ beforeAll(async () => {
   }
 });
 
-// // Clean up between tests
-// afterEach(async () => {
-//   // Clear test data but keep structure
-//   try {
-//     await pool.query('DELETE FROM otps');
-//     await pool.query('DELETE FROM users');
-//   } catch (error) {
-//     console.error('Test cleanup failed:', error);
-//   }
-// });
+// Clean up between tests
+afterEach(async () => {
+  // Clear test data but keep structure
+  try {
+    await pool.query('DELETE FROM otps');
+    await pool.query('DELETE FROM users');
+  } catch (error) {
+    console.error('Test cleanup failed:', error);
+  }
+});
 
 // Global teardown
 afterAll(async () => {

@@ -12,37 +12,24 @@ A Node.js authentication API that provides user signup, OTP verification, and PI
 - OTP (One-Time Password) generation and verification
 - PIN-based authentication
 - PostgreSQL database with proper schema
-- Docker support for easy development
 - Comprehensive test suite
 - **GitHub Actions CI/CD pipeline** with automated testing, security scanning, and deployment
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- Docker and Docker Compose (for PostgreSQL)
+- PostgreSQL database
 - npm or yarn
 
 ## Quick Start
 
-### 1. Start PostgreSQL with Docker
-
-```bash
-docker-compose up -d
-```
-
-This will start a PostgreSQL container with the following configuration:
-- Database: `auth_api_test`
-- User: `postgres`
-- Password: `postgres`
-- Port: `5432`
-
-### 2. Install Dependencies
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Environment Configuration
+### 2. Environment Configuration
 
 Copy the example environment file:
 
@@ -50,17 +37,21 @@ Copy the example environment file:
 cp .env.example .env
 ```
 
-The default configuration should work with the Docker setup.
+Update the `.env` file with your database credentials.
 
-### 4. Initialize Database
+### 3. Initialize Database
 
-The database will be automatically initialized when you run the tests or start the application.
+Create a PostgreSQL database and run the initialization:
 
-### 5. Run Tests
+```bash
+npm run db:init
+```
 
-You can run tests using either of these Docker-based scripts:
+### 4. Run Tests
 
-**Option 1: Using Docker with sudo (recommended)**
+You can run tests using either of these scripts:
+
+**Option 1: Using Docker with PostgreSQL (recommended)**
 ```bash
 ./scripts/run-tests-with-docker.sh
 ```
@@ -82,7 +73,7 @@ These scripts will:
 npm test
 ```
 
-### 6. Start the Application
+### 5. Start the Application
 
 ```bash
 npm start
@@ -98,20 +89,17 @@ This project includes comprehensive GitHub Actions workflows:
 - **Multi-version testing** on Node.js 18.x and 20.x
 - **PostgreSQL service** for integration testing
 - **Security scanning** with npm audit and Snyk
-- **Docker image building** and testing
 - **Code coverage** reporting with Codecov
 
 ### 🚀 **CD Pipeline** (`.github/workflows/cd.yml`)
-- **Automated Docker image building** and pushing to GitHub Container Registry
+- **Automated deployment** to staging and production
 - **Staging deployment** on master branch
 - **Production deployment** with manual approval
-- **Multi-tag support** (latest, SHA-based, branch-based)
 
 ### 🔒 **Security Scanning** (`.github/workflows/security.yml`)
 - **Weekly security audits** with npm audit
 - **Snyk vulnerability scanning**
 - **CodeQL analysis** for code security
-- **Docker image scanning** with Trivy
 - **SARIF report** generation for GitHub Security tab
 
 ### 🗄️ **Database Migrations** (`.github/workflows/migrations.yml`)
@@ -215,27 +203,6 @@ Add these secrets to your GitHub repository:
 - **Weekly schedule**: Security scanning runs every Monday
 - **Manual trigger**: All workflows support manual execution
 
-## Docker Commands
-
-```bash
-# Start PostgreSQL
-docker-compose up -d
-
-# Stop PostgreSQL
-docker-compose down
-
-# View logs
-docker-compose logs postgres
-
-# Reset PostgreSQL data
-docker-compose down -v
-docker-compose up -d
-
-# Build and test Docker image locally
-docker build -t auth-api:latest .
-docker run -p 3000:3000 --env-file .env auth-api:latest
-```
-
 ## Project Structure
 
 ```
@@ -276,8 +243,6 @@ docker run -p 3000:3000 --env-file .env auth-api:latest
 │       ├── cd.yml
 │       ├── security.yml
 │       └── migrations.yml
-├── docker-compose.yml
-├── Dockerfile
 ├── jest.config.js
 └── package.json
 ```
