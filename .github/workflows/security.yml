@@ -4,9 +4,9 @@ on:
   schedule:
     - cron: '0 2 * * 1' # Run every Monday at 2 AM
   push:
-    branches: [ master, develop ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [ master ]
   workflow_dispatch:
 
 permissions:

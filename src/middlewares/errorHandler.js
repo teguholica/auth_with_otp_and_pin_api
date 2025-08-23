@@ -1,7 +1,5 @@
 module.exports = (err, req, res, next) => {
-    if (process.env.NODE_ENV !== "test") {
-        console.error(err);
-    }
+    console.error(err);
 
     const errorMap = {
         USER_ALREADY_EXISTS: 409,
