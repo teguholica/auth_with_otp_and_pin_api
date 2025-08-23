@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const userRepo = require("../repositories/user.repository");
 const otpRepo = require("../repositories/otp.repository");
 const { generateOtp } = require("../utils/otp");
+const { generateToken } = require("../utils/jwt");
 
 class AuthService {
   async signup({ email, password, name }) {
@@ -85,6 +86,42 @@ class AuthService {
     });
 
     return { message: "VERIFIED", email: user.email, verifiedAt: now };
+  }
+
+  async login({ email, password }) {
+    // Find user by email
+    const user = await userRepo.findByEmail(email);
+    if (!user) {
+      throw new Error("INVALID_CREDENTIALS");
+    }
+
+    // Check if password is correct
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      throw new Error("INVALID_CREDENTIALS");
+    }
+
+    // Check if user is verified
+    if (user.status !== "VERIFIED") {
+      throw new Error("USER_NOT_VERIFIED");
+    }
+
+    // Generate JWT token
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
+
+    return {
+      message: "LOGIN_SUCCESS",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    };
   }
 }
 

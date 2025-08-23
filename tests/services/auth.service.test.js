@@ -2,6 +2,7 @@ const authService = require("../../src/services/auth.service");
 const userRepo = require("../../src/repositories/user.repository");
 const otpRepo = require("../../src/repositories/otp.repository");
 const pool = require("../../src/config/database");
+const bcrypt = require("bcryptjs");
 
 describe("AuthService", () => {
     const email = "service@example.com";
@@ -155,5 +156,65 @@ describe("AuthService", () => {
         await authService.signup({ email, password });
         await expect(authService.signup({ email, password }))
             .rejects.toThrow("USER_ALREADY_EXISTS");
+    });
+
+    it("should handle unexpected errors during user update", async () => {
+        // First signup a user
+        const { otp } = await authService.signup({ email: "error@example.com", password: "abc123" });
+        
+        // Mock userRepo.update to throw an unexpected error
+        const originalUpdate = userRepo.update;
+        userRepo.update = jest.fn().mockRejectedValue(new Error("Unexpected database error"));
+        
+        await expect(authService.verifyOtp("error@example.com", otp))
+            .rejects.toThrow("Unexpected database error");
+        
+        // Restore original function
+        userRepo.update = originalUpdate;
+    });
+
+    it("should handle bcrypt compare errors", async () => {
+        // First signup a user
+        await authService.signup({ email: "bcrypt@example.com", password: "abc123" });
+        
+        // Verify the user
+        const { otp } = await authService.signup({ email: "bcrypt2@example.com", password: "abc123" });
+        await authService.verifyOtp("bcrypt2@example.com", otp);
+        
+        // Mock bcrypt.compare to throw an error
+        const originalCompare = bcrypt.compare;
+        bcrypt.compare = jest.fn().mockImplementation(() => {
+            throw new Error("Bcrypt error");
+        });
+        
+        await expect(authService.login({ email: "bcrypt2@example.com", password: "abc123" }))
+            .rejects.toThrow("Bcrypt error");
+        
+        // Restore original function
+        bcrypt.compare = originalCompare;
+    });
+
+    it("should handle bcrypt compare returning false", async () => {
+        // First signup a user
+        await authService.signup({ email: "bcrypt3@example.com", password: "abc123" });
+        
+        // Verify the user
+        const { otp } = await authService.signup({ email: "bcrypt4@example.com", password: "abc123" });
+        await authService.verifyOtp("bcrypt4@example.com", otp);
+        
+        // Mock bcrypt.compare to return false
+        const originalCompare = bcrypt.compare;
+        bcrypt.compare = jest.fn().mockResolvedValue(false);
+        
+        await expect(authService.login({ email: "bcrypt4@example.com", password: "wrongpassword" }))
+            .rejects.toThrow("INVALID_CREDENTIALS");
+        
+        // Restore original function
+        bcrypt.compare = originalCompare;
+    });
+
+    it("should throw INVALID_CREDENTIALS for non-existent user", async () => {
+        await expect(authService.login({ email: "nonexistent@example.com", password: "any" }))
+            .rejects.toThrow("INVALID_CREDENTIALS");
     });
 });

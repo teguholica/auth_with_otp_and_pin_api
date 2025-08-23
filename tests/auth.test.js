@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../src/app");
+const userRepo = require("../src/repositories/user.repository");
 
 describe("Auth API", () => {
     const email = "test@example.com";
@@ -101,6 +102,103 @@ describe("Auth API", () => {
         expect(res.body.error).toBe("USER_NOT_FOUND");
     });
 
+    it("should login successfully with valid credentials", async () => {
+        // First signup a user
+        const signupRes = await request(app)
+            .post("/auth/signup")
+            .send({ email, password, name: "Test User" });
 
+        // Get the OTP from signup response
+        const otpCode = signupRes.body.otp;
+        
+        // Then verify the user with the OTP
+        await request(app)
+            .post("/auth/otp/verify")
+            .send({ email, code: otpCode });
 
+        // Now login
+        const res = await request(app)
+            .post("/auth/login")
+            .send({ email, password });
+
+        expect(res.status).toBe(200);
+        expect(res.body.message).toBe("LOGIN_SUCCESS");
+        expect(res.body.token).toBeDefined();
+        expect(res.body.user).toBeDefined();
+        expect(res.body.user.email).toBe(email);
+        expect(res.body.user.name).toBe("Test User");
+    });
+
+    it("should reject login with invalid email", async () => {
+        const res = await request(app)
+            .post("/auth/login")
+            .send({ email: "invalidemail", password });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("INVALID_EMAIL");
+    });
+
+    it("should reject login with invalid password", async () => {
+        const res = await request(app)
+            .post("/auth/login")
+            .send({ email, password: "123" });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("INVALID_PASSWORD");
+    });
+
+    it("should reject login with wrong password", async () => {
+        // First signup a user
+        const signupRes = await request(app)
+            .post("/auth/signup")
+            .send({ email, password, name: "Test User" });
+
+        // Get the OTP from signup response
+        const otpCode = signupRes.body.otp;
+        
+        // Then verify the user with the OTP
+        await request(app)
+            .post("/auth/otp/verify")
+            .send({ email, code: otpCode });
+
+        // Now try to login with wrong password
+        const res = await request(app)
+            .post("/auth/login")
+            .send({ email, password: "wrongpassword" });
+
+        expect(res.status).toBe(401);
+        expect(res.body.error).toBe("INVALID_CREDENTIALS");
+    });
+
+    it("should reject login for unverified user", async () => {
+        // First signup a user but don't verify
+        await request(app)
+            .post("/auth/signup")
+            .send({ email: "unverified@example.com", password, name: "Test User" });
+
+        // Try to login without verification
+        const res = await request(app)
+            .post("/auth/login")
+            .send({ email: "unverified@example.com", password });
+
+        expect(res.status).toBe(403);
+        expect(res.body.error).toBe("USER_NOT_VERIFIED");
+    });
+
+    it("should pass unexpected errors to error handler", async () => {
+        // Mock userRepo.findByEmail to throw an unexpected error
+        const originalFindByEmail = userRepo.findByEmail;
+        userRepo.findByEmail = jest.fn().mockRejectedValue(new Error("Unexpected database error"));
+
+        const res = await request(app)
+            .post("/auth/login")
+            .send({ email: "test@example.com", password: "secret123" });
+
+        // Restore original function
+        userRepo.findByEmail = originalFindByEmail;
+
+        // The error handler should catch this and return 500
+        expect(res.status).toBe(500);
+        expect(res.body.error).toBe("INTERNAL_ERROR");
+    });
 });

@@ -11,5 +11,6 @@ module.exports = (err, req, res, next) => {
     };
 
     const status = errorMap[err.message] || 500;
-    res.status(status).json({ error: err.message || "INTERNAL_ERROR" });
+    const errorResponse = errorMap[err.message] ? err.message : "INTERNAL_ERROR";
+    res.status(status).json({ error: errorResponse });
 };
