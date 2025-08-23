@@ -32,6 +32,20 @@ exports.signup = async (req, res, next) => {
     }
 };
 
+exports.deleteAccount = async (req, res, next) => {
+    try {
+        const { email } = req.user; // Get email from authenticated user
+        const result = await authService.deleteAccount(email);
+        return res.json(result);
+    } catch (err) {
+        // Handle specific error cases
+        if (err.message === "USER_NOT_FOUND") {
+            return res.status(404).json({ error: "USER_NOT_FOUND" });
+        }
+        next(err);
+    }
+};
+
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;

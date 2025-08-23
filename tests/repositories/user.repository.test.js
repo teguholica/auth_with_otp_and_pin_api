@@ -239,4 +239,28 @@ describe("UserRepository", () => {
         expect(updatedUser.passwordHash).toBe("new_hashed_password");
     });
 
+    it("should delete user successfully", async () => {
+        await userRepo.create({
+            email: "delete-test@example.com",
+            name: "Delete Test",
+            passwordHash: "hashed123",
+            status: "VERIFIED"
+        });
+
+        const deletedUser = await userRepo.delete("delete-test@example.com");
+
+        expect(deletedUser).toBeDefined();
+        expect(deletedUser.email).toBe("delete-test@example.com");
+        expect(deletedUser.name).toBe("Delete Test");
+
+        // Verify user no longer exists
+        const user = await userRepo.findByEmail("delete-test@example.com");
+        expect(user).toBeNull();
+    });
+
+    it("should throw USER_NOT_FOUND when deleting non-existent user", async () => {
+        await expect(userRepo.delete("nonexistent@example.com"))
+            .rejects.toThrow("USER_NOT_FOUND");
+    });
+
 });

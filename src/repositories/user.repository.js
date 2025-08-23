@@ -94,6 +94,17 @@ class UserRepository {
     };
     return mapping[userKey] || userKey;
   }
+
+  async delete(email) {
+    const query = 'DELETE FROM users WHERE email = $1 RETURNING *';
+    const result = await pool.query(query, [email.toLowerCase()]);
+    
+    if (result.rows.length === 0) {
+      throw new Error('USER_NOT_FOUND');
+    }
+    
+    return this.mapDbToUser(result.rows[0]);
+  }
 }
 
 module.exports = new UserRepository();

@@ -8,6 +8,8 @@ module.exports = (err, req, res, next) => {
         OTP_EXPIRED: 400,
         OTP_TOO_MANY_ATTEMPTS: 429,
         OTP_INVALID: 400,
+        MISSING_AUTH_TOKEN: 401,
+        INVALID_TOKEN: 403,
     };
 
     const status = errorMap[err.message] || 500;

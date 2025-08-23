@@ -123,6 +123,19 @@ class AuthService {
       },
     };
   }
+
+  async deleteAccount(email) {
+    // First, delete any OTP records for this user
+    await otpRepo.delete(email);
+    
+    // Then delete the user account
+    const deletedUser = await userRepo.delete(email);
+    
+    return {
+      message: "ACCOUNT_DELETED",
+      email: deletedUser.email
+    };
+  }
 }
 
 module.exports = new AuthService();

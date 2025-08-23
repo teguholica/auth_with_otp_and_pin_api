@@ -217,4 +217,28 @@ describe("AuthService", () => {
         await expect(authService.login({ email: "nonexistent@example.com", password: "any" }))
             .rejects.toThrow("INVALID_CREDENTIALS");
     });
+
+    it("should delete account and associated OTP", async () => {
+        // First signup a user
+        await authService.signup({ email: "delete@example.com", password: "abc123" });
+        
+        // Verify the user
+        const { otp } = await authService.signup({ email: "delete2@example.com", password: "abc123" });
+        await authService.verifyOtp("delete2@example.com", otp);
+        
+        // Delete the account
+        const result = await authService.deleteAccount("delete2@example.com");
+        
+        expect(result.message).toBe("ACCOUNT_DELETED");
+        expect(result.email).toBe("delete2@example.com");
+        
+        // Verify user no longer exists
+        await expect(authService.login({ email: "delete2@example.com", password: "abc123" }))
+            .rejects.toThrow("INVALID_CREDENTIALS");
+    });
+
+    it("should throw USER_NOT_FOUND when deleting non-existent account", async () => {
+        await expect(authService.deleteAccount("nonexistent@example.com"))
+            .rejects.toThrow("USER_NOT_FOUND");
+    });
 });
